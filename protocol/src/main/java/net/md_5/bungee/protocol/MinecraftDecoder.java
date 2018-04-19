@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.Setter;
 
 @AllArgsConstructor
@@ -14,13 +15,14 @@ public class MinecraftDecoder extends MessageToMessageDecoder<ByteBuf>
     @Setter
     private Protocol protocol;
     private final boolean server;
+    @Getter
     @Setter
     private int protocolVersion;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception
     {
-        Protocol.DirectionData prot = ( server ) ? protocol.TO_SERVER : protocol.TO_CLIENT;
+        Protocol.DirectionData prot = getDirectionData();
         ByteBuf slice = in.copy(); // Can't slice this one due to EntityMap :(
 
         try
@@ -41,7 +43,7 @@ public class MinecraftDecoder extends MessageToMessageDecoder<ByteBuf>
                 in.skipBytes( in.readableBytes() );
             }
 
-            out.add( new PacketWrapper( packet, slice ) );
+            out.add( new PacketWrapper( packet, slice, false ) );
             slice = null;
         } finally
         {
@@ -50,5 +52,10 @@ public class MinecraftDecoder extends MessageToMessageDecoder<ByteBuf>
                 slice.release();
             }
         }
+    }
+
+    public Protocol.DirectionData getDirectionData()
+    {
+        return ( server ) ? protocol.TO_SERVER : protocol.TO_CLIENT;
     }
 }

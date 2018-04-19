@@ -10,6 +10,7 @@ public class PacketWrapper
 
     public final DefinedPacket packet;
     public final ByteBuf buf;
+    public final boolean passthru;
     @Setter
     private boolean released;
 

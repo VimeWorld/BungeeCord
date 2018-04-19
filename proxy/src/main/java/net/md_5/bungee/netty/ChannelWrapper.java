@@ -28,11 +28,13 @@ public class ChannelWrapper
     private volatile boolean closed;
     @Getter
     private volatile boolean closing;
+    private volatile ChannelHandlerContext rawContext;
 
     public ChannelWrapper(ChannelHandlerContext ctx)
     {
         this.ch = ctx.channel();
         this.remoteAddress = (InetSocketAddress) this.ch.remoteAddress();
+        this.rawContext = ch.pipeline().context( PipelineUtils.PACKET_ENCODER );
     }
 
     public void setProtocol(Protocol protocol)
@@ -53,8 +55,15 @@ public class ChannelWrapper
         {
             if ( packet instanceof PacketWrapper )
             {
-                ( (PacketWrapper) packet ).setReleased( true );
-                ch.writeAndFlush( ( (PacketWrapper) packet ).buf, ch.voidPromise() );
+                PacketWrapper wrapper = (PacketWrapper) packet;
+                wrapper.setReleased( true );
+                if ( wrapper.passthru )
+                {
+                    rawContext.writeAndFlush( wrapper.buf, ch.voidPromise() );
+                } else
+                {
+                    ch.writeAndFlush( wrapper.buf, ch.voidPromise() );
+                }
             } else
             {
                 ch.writeAndFlush( packet, ch.voidPromise() );
@@ -152,5 +161,8 @@ public class ChannelWrapper
         {
             ch.pipeline().remove( "decompress" );
         }
+        rawContext = compressionThreshold == -1
+                ? ch.pipeline().context( PipelineUtils.PACKET_ENCODER )
+                : ch.pipeline().context( "compress" );
     }
 }

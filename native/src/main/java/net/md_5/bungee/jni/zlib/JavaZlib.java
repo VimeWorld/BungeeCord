@@ -45,7 +45,13 @@ public class JavaZlib implements BungeeZlib
     @Override
     public void process(ByteBuf in, ByteBuf out) throws DataFormatException
     {
-        byte[] inData = new byte[ in.readableBytes() ];
+        process( in, out, in.readableBytes() );
+    }
+
+    @Override
+    public void process(ByteBuf in, ByteBuf out, int length) throws DataFormatException
+    {
+        byte[] inData = new byte[ length ];
         in.readBytes( inData );
 
         if ( compress )

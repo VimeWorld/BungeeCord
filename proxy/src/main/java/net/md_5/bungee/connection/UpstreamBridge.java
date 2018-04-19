@@ -109,7 +109,10 @@ public class UpstreamBridge extends PacketHandler
     {
         if ( con.getServer() != null )
         {
-            con.getEntityRewrite().rewriteServerbound( packet.buf, con.getClientEntityId(), con.getServerEntityId() );
+            if ( !packet.passthru )
+            {
+                con.getEntityRewrite().rewriteServerbound( packet.buf, con.getClientEntityId(), con.getServerEntityId() );
+            }
             con.getServer().getCh().write( packet );
         }
     }

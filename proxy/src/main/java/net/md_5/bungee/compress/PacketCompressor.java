@@ -18,7 +18,7 @@ public class PacketCompressor extends MessageToByteEncoder<ByteBuf>
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception
     {
-        zlib.init( true, Deflater.DEFAULT_COMPRESSION );
+        zlib.init( true, 1 );
     }
 
     @Override

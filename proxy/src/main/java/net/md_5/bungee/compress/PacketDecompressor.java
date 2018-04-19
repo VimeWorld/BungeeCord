@@ -7,11 +7,14 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import java.util.List;
 import net.md_5.bungee.jni.zlib.BungeeZlib;
 import net.md_5.bungee.protocol.DefinedPacket;
+import net.md_5.bungee.protocol.MinecraftDecoder;
+import net.md_5.bungee.protocol.PacketWrapper;
 
 public class PacketDecompressor extends MessageToMessageDecoder<ByteBuf>
 {
 
     private final BungeeZlib zlib = CompressFactory.zlib.newInstance();
+    private MinecraftDecoder decoder;
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception
@@ -39,11 +42,31 @@ public class PacketDecompressor extends MessageToMessageDecoder<ByteBuf>
 
             try
             {
-                zlib.process( in, decompressed );
-                Preconditions.checkState( decompressed.readableBytes() == size, "Decompressed packet size mismatch" );
+                if ( decoder == null )
+                {
+                    decoder = ctx.pipeline().get( MinecraftDecoder.class );
+                }
 
-                out.add( decompressed );
-                decompressed = null;
+                in.markReaderIndex();
+                zlib.process( in, decompressed, Math.min( 256, in.readableBytes() ) );
+
+                int id = DefinedPacket.readVarInt( decompressed );
+                if ( !decoder.getDirectionData().isPacketDefined( id, decoder.getProtocolVersion() ) )
+                {
+                    in.readerIndex( 0 );
+                    out.add( new PacketWrapper( null, in.retain(), true ) );
+                } else
+                {
+                    decompressed.resetReaderIndex();
+                    decompressed.resetWriterIndex();
+                    in.resetReaderIndex();
+
+                    zlib.process( in, decompressed );
+                    Preconditions.checkState( decompressed.readableBytes() == size, "Decompressed packet size mismatch" );
+
+                    out.add( decompressed );
+                    decompressed = null;
+                }
             } finally
             {
                 if ( decompressed != null )

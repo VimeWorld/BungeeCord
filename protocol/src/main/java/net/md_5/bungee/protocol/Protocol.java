@@ -382,6 +382,20 @@ public enum Protocol
             }
         }
 
+        public boolean isPacketDefined(int id, int version)
+        {
+            ProtocolData protocolData = getProtocolData( version );
+            if ( protocolData == null )
+            {
+                return false;
+            }
+            if ( id > MAX_PACKET_ID )
+            {
+                return false;
+            }
+            return protocolData.packetConstructors[id] != null;
+        }
+
         protected final void registerPacket(Class<? extends DefinedPacket> packetClass, ProtocolMapping... mappings)
         {
             try
