@@ -1,6 +1,7 @@
 package net.md_5.bungee.jni.zlib;
 
 import io.netty.buffer.ByteBuf;
+import java.util.function.Function;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -45,17 +46,16 @@ public class JavaZlib implements BungeeZlib
     @Override
     public void process(ByteBuf in, ByteBuf out) throws DataFormatException
     {
-        process( in, out, in.readableBytes() );
+        process( in, out, null );
     }
 
     @Override
-    public void process(ByteBuf in, ByteBuf out, int length) throws DataFormatException
+    public void process(ByteBuf in, ByteBuf out, Function<ByteBuf, Boolean> firstReadCallback) throws DataFormatException
     {
-        byte[] inData = new byte[ length ];
-        in.readBytes( inData );
-
         if ( compress )
         {
+            byte[] inData = new byte[ in.readableBytes() ];
+            in.readBytes( inData );
             deflater.setInput( inData );
             deflater.finish();
 
@@ -68,12 +68,24 @@ public class JavaZlib implements BungeeZlib
             deflater.reset();
         } else
         {
-            inflater.setInput( inData );
+            byte[] inData = new byte[ Math.min( in.readableBytes(), 8192 ) ];
 
-            while ( !inflater.finished() && inflater.getTotalIn() < inData.length )
+            while ( !inflater.finished() && in.readableBytes() > 0 )
             {
-                int count = inflater.inflate( buffer );
+                int count = Math.min( in.readableBytes(), 8192 );
+                in.readBytes( inData, 0, count );
+                inflater.setInput( inData );
+                count = inflater.inflate( buffer );
                 out.writeBytes( buffer, 0, count );
+
+                if ( firstReadCallback != null )
+                {
+                    if ( !firstReadCallback.apply( out ) )
+                    {
+                        break;
+                    }
+                    firstReadCallback = null;
+                }
             }
 
             inflater.reset();

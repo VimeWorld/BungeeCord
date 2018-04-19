@@ -48,22 +48,26 @@ public class PacketDecompressor extends MessageToMessageDecoder<ByteBuf>
                 }
 
                 in.markReaderIndex();
-                zlib.process( in, decompressed, Math.min( 256, in.readableBytes() ) );
 
-                int id = DefinedPacket.readVarInt( decompressed );
-                if ( !decoder.getDirectionData().isPacketDefined( id, decoder.getProtocolVersion() ) )
-                {
-                    in.readerIndex( 0 );
-                    out.add( new PacketWrapper( null, in.retain(), true ) );
-                } else
-                {
-                    decompressed.resetReaderIndex();
-                    decompressed.resetWriterIndex();
-                    in.resetReaderIndex();
+                zlib.process( in, decompressed, (out0)
+                        -> 
+                        {
+                            out0.markReaderIndex();
+                            int id = DefinedPacket.readVarInt( out0 );
+                            out0.readerIndex( 0 );
+                            if ( !decoder.getDirectionData().isPacketDefined( id, decoder.getProtocolVersion() ) )
+                            {
+                                in.readerIndex( 0 );
+                                out0.writerIndex( 0 );
+                                out.add( new PacketWrapper( null, in.retain(), true ) );
+                                return Boolean.FALSE;
+                            }
+                            return Boolean.TRUE;
+                } );
 
-                    zlib.process( in, decompressed );
+                if ( decompressed.writerIndex() != 0 )
+                {
                     Preconditions.checkState( decompressed.readableBytes() == size, "Decompressed packet size mismatch" );
-
                     out.add( decompressed );
                     decompressed = null;
                 }

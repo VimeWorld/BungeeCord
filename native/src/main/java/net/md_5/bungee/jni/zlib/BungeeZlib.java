@@ -1,6 +1,8 @@
 package net.md_5.bungee.jni.zlib;
 
 import io.netty.buffer.ByteBuf;
+
+import java.util.function.Function;
 import java.util.zip.DataFormatException;
 
 public interface BungeeZlib
@@ -11,6 +13,6 @@ public interface BungeeZlib
     void free();
 
     void process(ByteBuf in, ByteBuf out) throws DataFormatException;
-    
-    void process(ByteBuf in, ByteBuf out, int length) throws DataFormatException;
+
+    void process(ByteBuf in, ByteBuf out, Function<ByteBuf, Boolean> firstReadCallback) throws DataFormatException;
 }
