@@ -68,13 +68,19 @@ public class JavaZlib implements BungeeZlib
             deflater.reset();
         } else
         {
-            byte[] inData = new byte[ Math.min( in.readableBytes(), 8192 ) ];
+            int totalLength = in.readableBytes();
+            byte[] inData = new byte[ Math.min( totalLength, 8192 ) ];
+            int count;
 
-            while ( !inflater.finished() && in.readableBytes() > 0 )
+            while ( !inflater.finished() && inflater.getTotalIn() < totalLength )
             {
-                int count = Math.min( in.readableBytes(), 8192 );
-                in.readBytes( inData, 0, count );
-                inflater.setInput( inData );
+                if ( inflater.needsInput() )
+                {
+                    count = Math.min( in.readableBytes(), 8192 );
+                    in.readBytes( inData, 0, Math.min( in.readableBytes(), 8192 ) );
+                    inflater.setInput( inData, 0, count );
+                }
+
                 count = inflater.inflate( buffer );
                 out.writeBytes( buffer, 0, count );
 
