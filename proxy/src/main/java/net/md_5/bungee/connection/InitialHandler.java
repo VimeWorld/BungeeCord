@@ -57,6 +57,7 @@ import net.md_5.bungee.protocol.packet.Handshake;
 import net.md_5.bungee.protocol.packet.Kick;
 import net.md_5.bungee.protocol.packet.LegacyHandshake;
 import net.md_5.bungee.protocol.packet.LegacyPing;
+import net.md_5.bungee.protocol.packet.LoginPayloadResponse;
 import net.md_5.bungee.protocol.packet.LoginRequest;
 import net.md_5.bungee.protocol.packet.LoginSuccess;
 import net.md_5.bungee.protocol.packet.PingPacket;
@@ -64,6 +65,7 @@ import net.md_5.bungee.protocol.packet.PluginMessage;
 import net.md_5.bungee.protocol.packet.StatusRequest;
 import net.md_5.bungee.protocol.packet.StatusResponse;
 import net.md_5.bungee.util.BoundedArrayList;
+import net.md_5.bungee.util.BufUtil;
 
 @RequiredArgsConstructor
 public class InitialHandler extends PacketHandler implements PendingConnection
@@ -127,6 +129,15 @@ public class InitialHandler extends PacketHandler implements PendingConnection
     public void exception(Throwable t) throws Exception
     {
         disconnect( ChatColor.RED + Util.exception( t ) );
+    }
+
+    @Override
+    public void handle(PacketWrapper packet) throws Exception
+    {
+        if ( packet.packet == null )
+        {
+            throw new IllegalArgumentException( "Unexpected packet received during login process!\n" + BufUtil.dump( packet.buf, 64 ) );
+        }
     }
 
     @Override
@@ -282,7 +293,10 @@ public class InitialHandler extends PacketHandler implements PendingConnection
         }
 
         this.virtualHost = InetSocketAddress.createUnresolved( handshake.getHost(), handshake.getPort() );
-        bungee.getLogger().log( Level.INFO, "{0} has connected", this );
+        if ( bungee.getConfig().isLogPings() )
+        {
+            bungee.getLogger().log( Level.INFO, "{0} has connected", this );
+        }
 
         bungee.getPluginManager().callEvent( new PlayerHandshakeEvent( InitialHandler.this, handshake ) );
 
@@ -295,6 +309,10 @@ public class InitialHandler extends PacketHandler implements PendingConnection
                 break;
             case 2:
                 // Login
+                if ( !bungee.getConfig().isLogPings() )
+                {
+                    bungee.getLogger().log( Level.INFO, "{0} has connected", this );
+                }
                 thisState = State.USERNAME;
                 ch.setProtocol( Protocol.LOGIN );
 
@@ -532,6 +550,12 @@ public class InitialHandler extends PacketHandler implements PendingConnection
 
         // fire login event
         bungee.getPluginManager().callEvent( new LoginEvent( InitialHandler.this, complete ) );
+    }
+
+    @Override
+    public void handle(LoginPayloadResponse response) throws Exception
+    {
+        disconnect( "Unexpected custom LoginPayloadResponse" );
     }
 
     @Override

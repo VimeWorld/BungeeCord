@@ -138,7 +138,7 @@ public class BungeeCord extends ProxyServer
      * Plugin manager.
      */
     @Getter
-    public final PluginManager pluginManager = new PluginManager( this );
+    public final PluginManager pluginManager;
     @Getter
     @Setter
     private ReconnectHandler reconnectHandler;
@@ -170,12 +170,6 @@ public class BungeeCord extends ProxyServer
     
     {
         // TODO: Proper fallback when we interface the manager
-        getPluginManager().registerCommand( null, new CommandReload() );
-        getPluginManager().registerCommand( null, new CommandEnd() );
-        getPluginManager().registerCommand( null, new CommandIP() );
-        getPluginManager().registerCommand( null, new CommandBungee() );
-        getPluginManager().registerCommand( null, new CommandPerms() );
-
         registerChannel( "BungeeCord" );
     }
 
@@ -220,6 +214,13 @@ public class BungeeCord extends ProxyServer
         System.setErr( new PrintStream( new LoggingOutputStream( logger, Level.SEVERE ), true ) );
         System.setOut( new PrintStream( new LoggingOutputStream( logger, Level.INFO ), true ) );
 
+        pluginManager = new PluginManager( this );
+        getPluginManager().registerCommand( null, new CommandReload() );
+        getPluginManager().registerCommand( null, new CommandEnd() );
+        getPluginManager().registerCommand( null, new CommandIP() );
+        getPluginManager().registerCommand( null, new CommandBungee() );
+        getPluginManager().registerCommand( null, new CommandPerms() );
+
         if ( !Boolean.getBoolean( "net.md_5.bungee.native.disable" ) )
         {
             if ( EncryptionUtil.nativeFactory.load() )
@@ -245,11 +246,9 @@ public class BungeeCord extends ProxyServer
      *
      * @throws Exception
      */
-    @Override
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public void start() throws Exception
     {
-        System.setProperty( "java.net.preferIPv4Stack", "true" ); // Minecraft does not support IPv6
         System.setProperty( "io.netty.selectorAutoRebuildThreshold", "0" ); // Seems to cause Bungee to stop accepting connections
         if ( System.getProperty( "io.netty.leakDetectionLevel" ) == null )
         {
@@ -273,7 +272,7 @@ public class BungeeCord extends ProxyServer
             registerChannel( ForgeConstants.FML_TAG );
             registerChannel( ForgeConstants.FML_HANDSHAKE_TAG );
             registerChannel( ForgeConstants.FORGE_REGISTER );
-            
+
             getLogger().warning( "MinecraftForge support is currently unmaintained and may have unresolved issues. Please use at your own risk." );
         }
 
@@ -379,8 +378,14 @@ public class BungeeCord extends ProxyServer
     }
 
     @Override
-    public void stop(final String reason)
+    public synchronized void stop(final String reason)
     {
+        if ( !isRunning )
+        {
+            return;
+        }
+        isRunning = false;
+
         new Thread( "Shutdown Thread" )
         {
             @Override
@@ -388,8 +393,6 @@ public class BungeeCord extends ProxyServer
             @SuppressWarnings("TooBroadCatch")
             public void run()
             {
-                BungeeCord.this.isRunning = false;
-
                 stopListeners();
                 getLogger().info( "Closing pending connections" );
 
@@ -612,8 +615,13 @@ public class BungeeCord extends ProxyServer
         return Collections.unmodifiableCollection( pluginChannels );
     }
 
-    public PluginMessage registerChannels()
+    public PluginMessage registerChannels(int protocolVersion)
     {
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_13 )
+        {
+            return new PluginMessage( "minecraft:register", Util.format( Iterables.transform( pluginChannels, PluginMessage.MODERNISE ), "\00" ).getBytes( Charsets.UTF_8 ), false );
+        }
+
         return new PluginMessage( "REGISTER", Util.format( pluginChannels, "\00" ).getBytes( Charsets.UTF_8 ), false );
     }
 
