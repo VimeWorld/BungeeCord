@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Map;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -40,8 +41,7 @@ public class CommandServer extends Command implements TabExecutor
                 sender.sendMessage( ProxyServer.getInstance().getTranslation( "current_server", ( (ProxiedPlayer) sender ).getServer().getInfo().getName() ) );
             }
 
-            TextComponent serverList = new TextComponent( ProxyServer.getInstance().getTranslation( "server_list" ) );
-            serverList.setColor( ChatColor.GOLD );
+            ComponentBuilder serverList = new ComponentBuilder( "" ).append( TextComponent.fromLegacyText( ProxyServer.getInstance().getTranslation( "server_list" ) ) );
             boolean first = true;
             for ( ServerInfo server : servers.values() )
             {
@@ -54,11 +54,11 @@ public class CommandServer extends Command implements TabExecutor
                             .append( "Click to connect to the server" ).italic( true )
                             .create() ) );
                     serverTextComponent.setClickEvent( new ClickEvent( ClickEvent.Action.RUN_COMMAND, "/server " + server.getName() ) );
-                    serverList.addExtra( serverTextComponent );
+                    serverList.append( serverTextComponent );
                     first = false;
                 }
             }
-            sender.sendMessage( serverList );
+            sender.sendMessage( serverList.create() );
         } else
         {
             if ( !( sender instanceof ProxiedPlayer ) )
@@ -86,12 +86,12 @@ public class CommandServer extends Command implements TabExecutor
     {
         return ( args.length > 1 ) ? Collections.EMPTY_LIST : Iterables.transform( Iterables.filter( ProxyServer.getInstance().getServers().values(), new Predicate<ServerInfo>()
         {
-            private final String lower = ( args.length == 0 ) ? "" : args[0].toLowerCase();
+            private final String lower = ( args.length == 0 ) ? "" : args[0].toLowerCase( Locale.ROOT );
 
             @Override
             public boolean apply(ServerInfo input)
             {
-                return input.getName().toLowerCase().startsWith( lower ) && input.canAccess( sender );
+                return input.getName().toLowerCase( Locale.ROOT ).startsWith( lower ) && input.canAccess( sender );
             }
         } ), new Function<ServerInfo, String>()
         {

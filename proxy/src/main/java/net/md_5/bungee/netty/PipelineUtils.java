@@ -21,6 +21,7 @@ import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.PlatformDependent;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -50,13 +51,19 @@ public class PipelineUtils
         @Override
         protected void initChannel(Channel ch) throws Exception
         {
+            if ( BungeeCord.getInstance().getConnectionThrottle() != null && BungeeCord.getInstance().getConnectionThrottle().throttle( ( (InetSocketAddress) ch.remoteAddress() ).getAddress() ) )
+            {
+                ch.close();
+                return;
+            }
+
             ListenerInfo listener = ch.attr( LISTENER ).get();
 
             BASE.initChannel( ch );
             ch.pipeline().addBefore( FRAME_DECODER, LEGACY_DECODER, new LegacyDecoder() );
             ch.pipeline().addAfter( FRAME_DECODER, PACKET_DECODER, new MinecraftDecoder( Protocol.HANDSHAKE, true, ProxyServer.getInstance().getProtocolVersion() ) );
             ch.pipeline().addAfter( FRAME_PREPENDER, PACKET_ENCODER, new MinecraftEncoder( Protocol.HANDSHAKE, true, ProxyServer.getInstance().getProtocolVersion() ) );
-            ch.pipeline().addBefore( FRAME_PREPENDER, LEGACY_KICKER, new KickStringWriter() );
+            ch.pipeline().addBefore( FRAME_PREPENDER, LEGACY_KICKER, legacyKicker );
             ch.pipeline().get( HandlerBoss.class ).setHandler( new InitialHandler( BungeeCord.getInstance(), listener ) );
 
             if ( listener.isProxyProtocol() )
@@ -66,6 +73,7 @@ public class PipelineUtils
         }
     };
     public static final Base BASE = new Base();
+    private static final KickStringWriter legacyKicker = new KickStringWriter();
     private static final Varint21LengthFieldPrepender framePrepender = new Varint21LengthFieldPrepender();
     public static final String TIMEOUT_HANDLER = "timeout";
     public static final String PACKET_DECODER = "packet-decoder";
