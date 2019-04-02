@@ -31,6 +31,7 @@ import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
@@ -47,6 +48,7 @@ import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.PacketWrapper;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import net.md_5.bungee.protocol.packet.BossBar;
+import net.md_5.bungee.protocol.packet.Chat;
 import net.md_5.bungee.protocol.packet.Commands;
 import net.md_5.bungee.protocol.packet.KeepAlive;
 import net.md_5.bungee.protocol.packet.PlayerListItem;
@@ -129,6 +131,23 @@ public class DownstreamBridge extends PacketHandler
     {
         server.setSentPingId( alive.getRandomId() );
         con.setSentPingTime( System.currentTimeMillis() );
+    }
+
+    @Override
+    public void handle(Chat chat) throws Exception
+    {
+        ChatEvent chatEvent = new ChatEvent( server, con, chat.getMessage() );
+        if ( bungee.getPluginManager().callEvent( chatEvent ).isCancelled() )
+        {
+            throw CancelSendSignal.INSTANCE;
+        }
+        
+        if (chat.getMessage() != chatEvent.getMessage())
+        {
+            chat.setMessage( chatEvent.getMessage() );
+            con.unsafe().sendPacket( chat );
+            throw CancelSendSignal.INSTANCE;
+        }
     }
 
     @Override
