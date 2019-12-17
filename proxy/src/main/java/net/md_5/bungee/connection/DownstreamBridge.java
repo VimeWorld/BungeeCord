@@ -139,8 +139,8 @@ public class DownstreamBridge extends PacketHandler
         {
             throw CancelSendSignal.INSTANCE;
         }
-        
-        if (chat.getMessage() != chatEvent.getMessage())
+
+        if ( chat.getMessage() != chatEvent.getMessage() )
         {
             chat.setMessage( chatEvent.getMessage() );
             con.unsafe().sendPacket( chat );

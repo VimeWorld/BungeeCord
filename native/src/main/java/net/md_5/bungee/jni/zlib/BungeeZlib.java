@@ -1,7 +1,6 @@
 package net.md_5.bungee.jni.zlib;
 
 import io.netty.buffer.ByteBuf;
-
 import java.util.function.Function;
 import java.util.zip.DataFormatException;
 

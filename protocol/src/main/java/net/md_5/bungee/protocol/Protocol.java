@@ -380,7 +380,7 @@ public enum Protocol
         return new ProtocolMapping( protocol, id );
     }
 
-    static final class DirectionData
+    public static final class DirectionData
     {
 
         private final TIntObjectMap<ProtocolData> protocols = new TIntObjectHashMap<>();
