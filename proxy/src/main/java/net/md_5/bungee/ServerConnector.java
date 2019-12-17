@@ -193,7 +193,7 @@ public class ServerConnector extends PacketHandler
             ch.write( message );
         }
 
-        if ( user.getSettings() != null )
+        if ( user.getSettings() != null && BungeeCord.getInstance().getConfig().isUseEntityMap() )
         {
             ch.write( user.getSettings() );
         }
@@ -252,12 +252,36 @@ public class ServerConnector extends PacketHandler
             user.unsafe().sendPacket( new EntityStatus( user.getClientEntityId(), login.isReducedDebugInfo() ? EntityStatus.DEBUG_INFO_REDUCED : EntityStatus.DEBUG_INFO_NORMAL ) );
 
             user.setDimensionChange( true );
-            if ( login.getDimension() == user.getDimension() )
+            if ( BungeeCord.getInstance().getConfig().isUseEntityMap() && login.getDimension() == user.getDimension() )
             {
                 user.unsafe().sendPacket( new Respawn( ( login.getDimension() >= 0 ? -1 : 0 ), login.getSeed(), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
             }
 
             user.setServerEntityId( login.getEntityId() );
+            
+            // Waterfall start
+            if ( !BungeeCord.getInstance().getConfig().isUseEntityMap() )
+            {
+                // Ensure that we maintain consistency
+                user.setClientEntityId( login.getEntityId() );
+
+                // Only send if we are not in the same dimension
+                if ( user.getDimension() != login.getDimension() )
+                {
+                    user.unsafe().sendPacket( new Respawn( user.getDimension() == 0 ? -1 : 0, login.getSeed(), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
+                }
+
+                Login modLogin = new Login( login.getEntityId(), login.getGameMode(), login.getDimension(), login.getSeed(),
+                        login.getDifficulty(), login.getMaxPlayers(), login.getLevelType(), login.getViewDistance(), login.isReducedDebugInfo(), login.isNormalRespawn() );
+                user.unsafe().sendPacket( modLogin );
+
+                // Only send if we're in the same dimension
+                if ( user.getDimension() == login.getDimension() )
+                {
+                    user.unsafe().sendPacket( new Respawn( user.getDimension() == 0 ? -1 : 0, login.getSeed(), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
+                }
+            }
+            // Waterfall end
             user.unsafe().sendPacket( new Respawn( login.getDimension(), login.getSeed(), login.getDifficulty(), login.getGameMode(), login.getLevelType() ) );
             if ( user.getPendingConnection().getVersion() >= ProtocolConstants.MINECRAFT_1_14 )
             {

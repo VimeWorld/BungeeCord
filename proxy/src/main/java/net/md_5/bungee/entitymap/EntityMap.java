@@ -8,6 +8,7 @@ import io.netty.buffer.ByteBufInputStream;
 import java.io.IOException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.ProtocolConstants;
 
@@ -27,6 +28,11 @@ public abstract class EntityMap
     // Returns the correct entity map for the protocol version
     public static EntityMap getEntityMap(int version)
     {
+        if ( !BungeeCord.getInstance().getConfig().isUseEntityMap() )
+        {
+            return EntityMap_Dummy.INSTANCE;
+        }
+
         switch ( version )
         {
             case ProtocolConstants.MINECRAFT_1_8:
