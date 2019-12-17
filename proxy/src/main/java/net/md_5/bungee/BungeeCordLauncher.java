@@ -23,11 +23,17 @@ public class BungeeCordLauncher
 
         OptionParser parser = new OptionParser();
         parser.allowsUnrecognizedOptions();
-        parser.acceptsAll( Arrays.asList( "v", "version" ) );
-        parser.acceptsAll( Arrays.asList( "noconsole" ) );
+        parser.acceptsAll( Arrays.asList( "help" ), "Show the help" );
+        parser.acceptsAll( Arrays.asList( "v", "version" ), "Print version and exit" );
+        parser.acceptsAll( Arrays.asList( "noconsole" ), "Disable console input" );
 
         OptionSet options = parser.parse( args );
 
+        if ( options.has( "help" ) )
+        {
+            parser.printHelpOn( System.out );
+            return;
+        }
         if ( options.has( "version" ) )
         {
             System.out.println( BungeeCord.class.getPackage().getImplementationVersion() );
@@ -39,7 +45,7 @@ public class BungeeCordLauncher
             Date buildDate = new SimpleDateFormat( "yyyyMMdd" ).parse( BungeeCord.class.getPackage().getSpecificationVersion() );
 
             Calendar deadline = Calendar.getInstance();
-            deadline.add( Calendar.WEEK_OF_YEAR, -4 );
+            deadline.add( Calendar.WEEK_OF_YEAR, -8 );
             if ( buildDate.before( deadline.getTime() ) )
             {
                 System.err.println( "*** Warning, this build is outdated ***" );

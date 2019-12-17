@@ -1,12 +1,12 @@
 package net.md_5.bungee.protocol.packet;
 
-import net.md_5.bungee.protocol.DefinedPacket;
 import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import net.md_5.bungee.protocol.AbstractPacketHandler;
+import net.md_5.bungee.protocol.DefinedPacket;
 import net.md_5.bungee.protocol.ProtocolConstants;
 
 @Data
@@ -19,10 +19,13 @@ public class Login extends DefinedPacket
     private int entityId;
     private short gameMode;
     private int dimension;
+    private long seed;
     private short difficulty;
     private short maxPlayers;
     private String levelType;
+    private int viewDistance;
     private boolean reducedDebugInfo;
+    private boolean normalRespawn;
 
     @Override
     public void read(ByteBuf buf, ProtocolConstants.Direction direction, int protocolVersion)
@@ -36,12 +39,27 @@ public class Login extends DefinedPacket
         {
             dimension = buf.readByte();
         }
-        difficulty = buf.readUnsignedByte();
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_15 )
+        {
+            seed = buf.readLong();
+        }
+        if ( protocolVersion < ProtocolConstants.MINECRAFT_1_14 )
+        {
+            difficulty = buf.readUnsignedByte();
+        }
         maxPlayers = buf.readUnsignedByte();
         levelType = readString( buf );
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_14 )
+        {
+            viewDistance = readVarInt( buf );
+        }
         if ( protocolVersion >= 29 )
         {
             reducedDebugInfo = buf.readBoolean();
+        }
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_15 )
+        {
+            normalRespawn = buf.readBoolean();
         }
     }
 
@@ -57,12 +75,27 @@ public class Login extends DefinedPacket
         {
             buf.writeByte( dimension );
         }
-        buf.writeByte( difficulty );
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_15 )
+        {
+            buf.writeLong( seed );
+        }
+        if ( protocolVersion < ProtocolConstants.MINECRAFT_1_14 )
+        {
+            buf.writeByte( difficulty );
+        }
         buf.writeByte( maxPlayers );
         writeString( levelType, buf );
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_14 )
+        {
+            writeVarInt( viewDistance, buf );
+        }
         if ( protocolVersion >= 29 )
         {
             buf.writeBoolean( reducedDebugInfo );
+        }
+        if ( protocolVersion >= ProtocolConstants.MINECRAFT_1_15 )
+        {
+            buf.writeBoolean( normalRespawn );
         }
     }
 

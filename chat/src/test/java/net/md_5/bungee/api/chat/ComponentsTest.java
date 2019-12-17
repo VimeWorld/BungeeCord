@@ -1,13 +1,12 @@
 package net.md_5.bungee.api.chat;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class ComponentsTest
 {
@@ -73,6 +72,16 @@ public class ComponentsTest
         Assert.assertEquals( textComponent.toPlainText(), components[1].toPlainText() );
         Assert.assertEquals( translatableComponent.toPlainText(), components[2].toPlainText() );
         Assert.assertEquals( scoreComponent.toPlainText(), components[3].toPlainText() );
+    }
+
+    @Test
+    public void testScore()
+    {
+        BaseComponent[] component = ComponentSerializer.parse( "{\"score\":{\"name\":\"@p\",\"objective\":\"TEST\",\"value\":\"hello\"}}" );
+        String text = ComponentSerializer.toString( component );
+        BaseComponent[] reparsed = ComponentSerializer.parse( text );
+
+        Assert.assertArrayEquals( component, reparsed );
     }
 
     @Test
@@ -158,6 +167,9 @@ public class ComponentsTest
 
         Assert.assertEquals( "Page 5 of 50", positional.toPlainText() );
         Assert.assertEquals( ChatColor.WHITE + "Page " + ChatColor.WHITE + "5" + ChatColor.WHITE + " of " + ChatColor.WHITE + "50", positional.toLegacyText() );
+
+        TranslatableComponent one_four_two = new TranslatableComponent( "filled_map.buried_treasure" );
+        Assert.assertEquals( "Buried Treasure Map", one_four_two.toPlainText() );
     }
 
     @Test
