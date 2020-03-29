@@ -1,7 +1,6 @@
 package net.md_5.bungee.entitymap;
 
 import com.flowpowered.nbt.stream.NBTInputStream;
-import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -64,6 +63,8 @@ public abstract class EntityMap
             case ProtocolConstants.MINECRAFT_1_14_4:
                 return EntityMap_1_14.INSTANCE;
             case ProtocolConstants.MINECRAFT_1_15:
+            case ProtocolConstants.MINECRAFT_1_15_1:
+            case ProtocolConstants.MINECRAFT_1_15_2:
                 return EntityMap_1_15.INSTANCE;
         }
         throw new RuntimeException( "Version " + version + " has no entity map" );
@@ -262,7 +263,7 @@ public abstract class EntityMap
                         new NBTInputStream( new ByteBufInputStream( packet ), false ).readTag();
                     } catch ( IOException ex )
                     {
-                        throw Throwables.propagate( ex );
+                        throw new RuntimeException( ex );
                     }
                     break;
                 case 15:
@@ -310,7 +311,7 @@ public abstract class EntityMap
                     new NBTInputStream( new ByteBufInputStream( packet ), false ).readTag();
                 } catch ( IOException ex )
                 {
-                    throw Throwables.propagate( ex );
+                    throw new RuntimeException( ex );
                 }
             }
         }

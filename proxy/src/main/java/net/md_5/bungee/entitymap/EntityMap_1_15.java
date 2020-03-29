@@ -96,9 +96,9 @@ class EntityMap_1_15 extends EntityMap
                 DefinedPacket.readUUID( packet );
                 int type = DefinedPacket.readVarInt( packet );
 
-                if ( type == 2 || type == 101 || type == 71 ) // arrow, fishing_bobber or spectral_arrow
+                if ( type == 2 || type == 102 || type == 72 ) // arrow, fishing_bobber or spectral_arrow
                 {
-                    if ( type == 2 || type == 71 ) // arrow or spectral_arrow
+                    if ( type == 2 || type == 72 ) // arrow or spectral_arrow
                     {
                         oldId = oldId + 1;
                         newId = newId + 1;
@@ -149,6 +149,7 @@ class EntityMap_1_15 extends EntityMap
                 DefinedPacket.readVarInt( packet ); // Entity ID
                 rewriteMetaVarInt( packet, oldId + 1, newId + 1, 7, protocolVersion ); // fishing hook
                 rewriteMetaVarInt( packet, oldId, newId, 8, protocolVersion ); // fireworks (et al)
+                rewriteMetaVarInt( packet, oldId, newId, 16, protocolVersion ); // guardian beam
                 break;
             case 0x51 /* Entity Sound Effect : PacketPlayOutEntitySound */:
                 DefinedPacket.readVarInt( packet );
