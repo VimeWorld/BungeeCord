@@ -19,6 +19,8 @@ import net.md_5.bungee.api.scheduler.GroupedThreadFactory;
 public class Plugin
 {
 
+    static final boolean ALLOW_CUSTOM_CLASSLOADERS = Boolean.getBoolean( "IReallyKnowWhatIAmDoingISwear" );
+
     @Getter
     private PluginDescription description;
     @Getter
@@ -30,16 +32,22 @@ public class Plugin
 
     public Plugin()
     {
-        ClassLoader classLoader = getClass().getClassLoader();
-        Preconditions.checkState( classLoader instanceof PluginClassloader, "Plugin requires " + PluginClassloader.class.getName() );
-
-        ( (PluginClassloader) classLoader ).init( this );
+        if ( !ALLOW_CUSTOM_CLASSLOADERS )
+        {
+            ClassLoader classLoader = getClass().getClassLoader();
+            Preconditions.checkState( classLoader instanceof PluginClassloader, "Plugin requires " + PluginClassloader.class.getName() );
+            
+            ( (PluginClassloader) classLoader ).init( this );
+        }
     }
 
     protected Plugin(ProxyServer proxy, PluginDescription description)
     {
-        ClassLoader classLoader = getClass().getClassLoader();
-        Preconditions.checkState( !( classLoader instanceof PluginClassloader ), "Cannot use initialization constructor at runtime" );
+        if ( !ALLOW_CUSTOM_CLASSLOADERS )
+        {
+            ClassLoader classLoader = getClass().getClassLoader();
+            Preconditions.checkState( !( classLoader instanceof PluginClassloader ), "Cannot use initialization constructor at runtime" );
+        }
 
         // init( proxy, description );
     }

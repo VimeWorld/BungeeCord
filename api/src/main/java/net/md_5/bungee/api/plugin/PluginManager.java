@@ -327,6 +327,9 @@ public final class PluginManager
                 Class<?> main = loader.loadClass( plugin.getMain() );
                 Plugin clazz = (Plugin) main.getDeclaredConstructor().newInstance();
 
+                if ( Plugin.ALLOW_CUSTOM_CLASSLOADERS )
+                    clazz.init( proxy, plugin );
+
                 plugins.put( plugin.getName(), clazz );
                 clazz.onLoad();
                 ProxyServer.getInstance().getLogger().log( Level.INFO, "Loaded plugin {0} version {1} by {2}", new Object[]
