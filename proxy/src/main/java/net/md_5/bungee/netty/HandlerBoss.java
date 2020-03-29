@@ -16,6 +16,7 @@ import net.md_5.bungee.connection.PingHandler;
 import net.md_5.bungee.protocol.BadPacketException;
 import net.md_5.bungee.protocol.OverflowPacketException;
 import net.md_5.bungee.protocol.PacketWrapper;
+import net.md_5.bungee.util.NettyReflection;
 import net.md_5.bungee.util.QuietException;
 
 /**
@@ -111,6 +112,9 @@ public class HandlerBoss extends ChannelInboundHandlerAdapter
                 {
                     handler.handle( packet );
                 }
+            } catch ( Throwable ex )
+            {
+                NettyReflection.invokeExceptionFromRead( ctx, ex );
             } finally
             {
                 packet.trySingleRelease();
