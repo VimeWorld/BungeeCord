@@ -11,6 +11,10 @@ import lombok.RequiredArgsConstructor;
 public abstract class DefinedPacket
 {
 
+    private static final boolean FAST_EXCEPTIONS = Boolean.getBoolean( "vbungee.fastExceptions" );
+    private static final RuntimeException VARINT_TOO_BIG = new RuntimeException( "VarInt too big (CACHED EXCEPTION)" );
+    private static final IndexOutOfBoundsException VARINT_PARTIAL = new IndexOutOfBoundsException( "VarInt is partial (CACHED EXCEPTION)" );
+
     public static void writeString(String s, ByteBuf buf)
     {
         if ( s.length() > Short.MAX_VALUE )
@@ -115,14 +119,30 @@ public abstract class DefinedPacket
         int out = 0;
         int bytes = 0;
         byte in;
+        int readable = input.readableBytes();
         while ( true )
         {
-            in = input.readByte();
+            if ( FAST_EXCEPTIONS )
+            {
+                if ( readable <= 0 )
+                {
+                    throw VARINT_PARTIAL;
+                }
+                in = input.readByte();
+                readable--;
+            } else
+            {
+                in = input.readByte();
+            }
 
             out |= ( in & 0x7F ) << ( bytes++ * 7 );
 
             if ( bytes > maxBytes )
             {
+                if ( FAST_EXCEPTIONS )
+                {
+                    throw VARINT_TOO_BIG;
+                }
                 throw new RuntimeException( "VarInt too big" );
             }
 

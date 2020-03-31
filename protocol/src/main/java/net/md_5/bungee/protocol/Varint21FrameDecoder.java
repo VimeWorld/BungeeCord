@@ -1,7 +1,6 @@
 package net.md_5.bungee.protocol;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.CorruptedFrameException;
@@ -17,8 +16,7 @@ public class Varint21FrameDecoder extends ByteToMessageDecoder
     {
         in.markReaderIndex();
 
-        final byte[] buf = new byte[ 3 ];
-        for ( int i = 0; i < buf.length; i++ )
+        for ( int i = 0; i < 3; i++ )
         {
             if ( !in.isReadable() )
             {
@@ -26,10 +24,11 @@ public class Varint21FrameDecoder extends ByteToMessageDecoder
                 return;
             }
 
-            buf[i] = in.readByte();
-            if ( buf[i] >= 0 )
+            byte b = in.readByte();
+            if ( b >= 0 )
             {
-                int length = DefinedPacket.readVarInt( Unpooled.wrappedBuffer( buf ) );
+                in.resetReaderIndex();
+                int length = DefinedPacket.readVarInt( in );
                 if ( length == 0 )
                 {
                     throw new CorruptedFrameException( "Empty Packet!" );

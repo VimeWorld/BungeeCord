@@ -17,7 +17,7 @@ import net.md_5.bungee.connection.PingHandler;
 import net.md_5.bungee.protocol.BadPacketException;
 import net.md_5.bungee.protocol.OverflowPacketException;
 import net.md_5.bungee.protocol.PacketWrapper;
-import net.md_5.bungee.util.NettyReflection;
+import net.md_5.bungee.protocol.NettyReflection;
 import net.md_5.bungee.util.QuietException;
 
 /**

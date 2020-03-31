@@ -1,4 +1,4 @@
-package net.md_5.bungee.util;
+package net.md_5.bungee.protocol;
 
 import io.netty.channel.ChannelHandlerContext;
 import java.lang.reflect.Method;
