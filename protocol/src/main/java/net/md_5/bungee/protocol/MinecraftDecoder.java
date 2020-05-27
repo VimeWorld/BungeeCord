@@ -60,7 +60,7 @@ public class MinecraftDecoder extends MessageToMessageDecoder<ByteBuf>
         {
             broken = true;
             ctx.channel().config().setAutoRead( false );
-            NettyReflection.invokeExceptionFromRead( ctx, ex );
+            throw ex;
         } finally
         {
             if ( slice != null )
