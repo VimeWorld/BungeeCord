@@ -6,6 +6,7 @@ import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import io.netty.channel.Channel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import net.md_5.bungee.BungeeCord;
@@ -251,6 +252,16 @@ public class UpstreamBridge extends PacketHandler
         // TODO: Unregister as well?
         if ( PluginMessage.SHOULD_RELAY.apply( pluginMessage ) )
         {
+            // VimeWorld start - discard duplicate messages
+            for ( PluginMessage msg : con.getPendingConnection().getRelayMessages() )
+            {
+                if ( msg.getTag().equals( pluginMessage.getTag() ) && Arrays.equals( msg.getData(), pluginMessage.getData() ) )
+                {
+                    throw CancelSendSignal.INSTANCE;
+                }
+            }
+            // VimeWorld end
+
             con.getPendingConnection().getRelayMessages().add( pluginMessage );
         }
     }
