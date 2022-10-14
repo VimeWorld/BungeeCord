@@ -67,7 +67,7 @@ public class PipelineUtils
 
             ListenerInfo listener = ch.attr( LISTENER ).get();
 
-            if ( BungeeCord.getInstance().getPluginManager().callEvent( new ClientConnectEvent( remoteAddress, listener ) ).isCancelled() )
+            if ( BungeeCord.getInstance().getPluginManager().callEvent( new ClientConnectEvent( remoteAddress, listener, ch ) ).isCancelled() )
             {
                 ch.close();
                 return;

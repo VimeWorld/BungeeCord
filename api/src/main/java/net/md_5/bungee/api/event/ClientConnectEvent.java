@@ -1,6 +1,8 @@
 package net.md_5.bungee.api.event;
 
 import java.net.SocketAddress;
+
+import io.netty.channel.Channel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -32,4 +34,10 @@ public class ClientConnectEvent extends Event implements Cancellable
      * Listener that accepted the connection.
      */
     private final ListenerInfo listener;
+    /**
+     * Raw netty channel.
+     *
+     * VimeWorld feature.
+     */
+    private final Channel channel;
 }
