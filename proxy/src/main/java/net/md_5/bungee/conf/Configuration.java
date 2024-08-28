@@ -65,6 +65,7 @@ public class Configuration implements ProxyConfig
     private boolean preventProxyConnections;
     private boolean forgeSupport;
     private boolean useEntityMap = true;
+    private boolean useTablistRewrite = true;
 
     public void load()
     {
@@ -100,6 +101,7 @@ public class Configuration implements ProxyConfig
         preventProxyConnections = adapter.getBoolean( "prevent_proxy_connections", preventProxyConnections );
         forgeSupport = adapter.getBoolean( "forge_support", forgeSupport );
         useEntityMap = adapter.getBoolean( "use_entity_map", useEntityMap );
+        useTablistRewrite = adapter.getBoolean( "use_tablist_rewrite", useTablistRewrite );
 
         disabledCommands = new CaseInsensitiveSet( (Collection<String>) adapter.getList( "disabled_commands", Arrays.asList( "disabledcommandhere" ) ) );
 

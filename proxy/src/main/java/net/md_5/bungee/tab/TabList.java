@@ -25,6 +25,11 @@ public abstract class TabList
 
     public static PlayerListItem rewrite(PlayerListItem playerListItem)
     {
+        if ( !BungeeCord.getInstance().getConfig().isUseTablistRewrite() )
+        {
+            return playerListItem;
+        }
+        
         for ( PlayerListItem.Item item : playerListItem.getItems() )
         {
             if ( item.getUuid() == null ) // Old style ping
