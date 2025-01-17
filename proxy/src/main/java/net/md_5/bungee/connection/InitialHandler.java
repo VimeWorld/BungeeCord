@@ -355,12 +355,6 @@ public class InitialHandler extends PacketHandler implements PendingConnection
 
         bungee.getLogger().log( Level.INFO, "{0} has connected", this );
 
-        if ( getName().contains( "." ) )
-        {
-            disconnect( bungee.getTranslation( "name_invalid" ) );
-            return;
-        }
-
         if ( getName().length() > 16 )
         {
             disconnect( bungee.getTranslation( "name_too_long" ) );
