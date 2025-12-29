@@ -273,6 +273,8 @@ public abstract class ProxyServer
      */
     public abstract void broadcast(BaseComponent message);
 
+    public abstract void broadcastRaw(String rawJson);
+
     /**
      * Gets the commands which are disabled and will not be run on this proxy.
      *

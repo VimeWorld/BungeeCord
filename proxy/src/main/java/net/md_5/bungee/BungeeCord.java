@@ -717,6 +717,12 @@ public class BungeeCord extends ProxyServer
         broadcast( new Chat( ComponentSerializer.toString( message ) ) );
     }
 
+    @Override
+    public void broadcastRaw(String rawJson) {
+        getConsole().sendMessage( rawJson );
+        broadcast( new Chat( rawJson ) );
+    }
+
     public void addConnection(UserConnection con)
     {
         connectionLock.writeLock().lock();
